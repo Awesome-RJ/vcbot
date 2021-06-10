@@ -396,8 +396,8 @@ async def m_cb(b, cb):
         else:
             await cb.answer('Chat is not connected!', show_alert=True)
 
-@Client.on_message(command("play") & other_filters)
-async def play(_, message: Message):
+@Client.on_message(command("ytt") & other_filters)
+async def ytt(_, message: Message):
     global que
     lel = await message.reply("🔄 **Pʀᴏᴄᴇꜱꜱɪɴɢ**")
     administrators = await get_administrators(message.chat)
