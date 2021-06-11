@@ -27,18 +27,18 @@ async def addchannel(client, message):
         await USER.send_message(message.chat.id,"I J H A Y RQ")
     except UserAlreadyParticipant:
         await message.reply_text(
-            "<b>@MusicHelper A I Y C</b>",
+            "<b>@Awesome_Cutiepii A I Y C</b>",
         )
         pass
     except Exception as e:
         print(e)
         await message.reply_text(
             f"<b>🛑 Flood Wait Error 🛑 \n U {user.first_name} C' J Y G D T H J RQ F U! M S U I N B I G."
-            "\n\nO M A @MusicHelper T Y G A T A</b>",
+            "\n\nO M A @Awesome_Cutiepii T Y G A T A</b>",
         )
         return
     await message.reply_text(
-            "<b>@MusicHelper U J Y C</b>",
+            "<b>@Awesome_Cutiepii U J Y C</b>",
         )
     
 @USER.on_message(filters.group & filters.command(["userbotleave"]))
