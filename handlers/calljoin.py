@@ -29,7 +29,6 @@ async def addchannel(client, message):
         await message.reply_text(
             "<b>@Awesome_Cutiepii A I Y C</b>",
         )
-        pass
     except Exception as e:
         print(e)
         await message.reply_text(
@@ -47,7 +46,7 @@ async def rem(USER, message):
         await USER.leave_chat(message.chat.id)
     except:  
         await message.reply_text(
-            f"<b>U C' L Y G! M B F."
-            "\n\nO M K M F Y G.</b>",
+            "<b>U\x1a\x1a\x1a C\x1a\x1a\x1a\x1a\x1a'\x1a L\x1a\x1a\x1a\x1a Y\x1a\x1a\x1a G\x1a\x1a\x1a\x1a! M\x1a\x1a B\x1a F\x1a\x1a\x1a\x1a\x1a\x1a\x1a\x1a\x1a."
         )
+
         return

@@ -50,9 +50,8 @@ def cb_admin_check(func: Callable) -> Callable:
         admemes = a.get(cb.message.chat.id)
         if cb.from_user.id in admemes:
             return await func(client, cb)
-        else:
-            await cb.answer('You ain\'t allowed!', show_alert=True)
-            return
+        await cb.answer('You ain\'t allowed!', show_alert=True)
+        return
     return decorator                                                                       
                                           
                                           
@@ -83,8 +82,7 @@ def changeImageSize(maxWidth, maxHeight, image):
     heightRatio = maxHeight / image.size[1]
     newWidth = int(widthRatio * image.size[0])
     newHeight = int(heightRatio * image.size[1])
-    newImage = image.resize((newWidth, newHeight))
-    return newImage
+    return image.resize((newWidth, newHeight))
 
 async def generate_cover(requested_by, title, views, duration, thumbnail):
     async with aiohttp.ClientSession() as session:
@@ -131,9 +129,7 @@ async def playlist(client, message):
     queue = que.get(message.chat.id)
     if not queue:
         await message.reply_text('Player is idle')
-    temp = []
-    for t in queue:
-        temp.append(t)
+    temp = list(queue)
     now_playing = temp[0][0]
     by = temp[0][1].mention(style='md')
     msg = "**Nᴏᴡ Pʟᴀʏɪɴɢ** in {}".format(message.chat.title)
@@ -167,29 +163,25 @@ def updated_stats(chat, queue, vol=100):
     return stats
 
 def r_ply(type_):
-    if type_ == 'play':
-        ico = '▶'
-    else:
-        ico = '⏸'
-    mar = InlineKeyboardMarkup(
+    ico = '▶' if type_ == 'play' else '⏸'
+    return InlineKeyboardMarkup(
         [
             [
                 InlineKeyboardButton('⏹', 'Lᴇᴀᴠᴇ'),
                 InlineKeyboardButton('⏸', 'Pᴀᴜꜱᴇ'),
                 InlineKeyboardButton('▶️', 'Rᴇꜱᴜᴍᴇ'),
                 InlineKeyboardButton('⏭', 'Sᴋɪᴘ')
-                
+
             ],
             [
                 InlineKeyboardButton('Pʟᴀʏʟɪꜱᴛ 📖', 'playlist'),
-                
+
             ],
             [       
                 InlineKeyboardButton("🆑 Cʟᴏꜱᴇ",'cls')
             ]        
         ]
     )
-    return mar
 
 @Client.on_message(
     filters.command("current")
@@ -198,9 +190,8 @@ def r_ply(type_):
 )
 async def ee(client, message):
     queue = que.get(message.chat.id)
-    stats = updated_stats(message.chat, queue)
-    if stats:
-        await message.reply(stats)              
+    if stats := updated_stats(message.chat, queue):
+        await message.reply(stats)
     else:
         await message.reply('No VC instances running in this chat')
 
@@ -215,11 +206,10 @@ async def settings(client, message):
     if message.chat.id in callsmusic.pytgcalls.active_calls:
         playing = True
     queue = que.get(message.chat.id)
-    stats = updated_stats(message.chat, queue)
-    if stats:
+    if stats := updated_stats(message.chat, queue):
         if playing:
             await message.reply(stats, reply_markup=r_ply('pause'))
-            
+
         else:
             await message.reply(stats, reply_markup=r_ply('play'))
     else:
@@ -227,19 +217,17 @@ async def settings(client, message):
 
 @Client.on_callback_query(filters.regex(pattern=r'^(playlist)$'))
 async def p_cb(b, cb):
-    global que    
+    global que
     qeue = que.get(cb.message.chat.id)
     type_ = cb.matches[0].group(1)
     chat_id = cb.message.chat.id
     m_chat = cb.message.chat
     the_data = cb.message.reply_markup.inline_keyboard[1][0].callback_data
-    if type_ == 'playlist':           
+    if type_ == 'playlist':       
         queue = que.get(cb.message.chat.id)
         if not queue:   
             await cb.message.edit('Player is idle')
-        temp = []
-        for t in queue:
-            temp.append(t)
+        temp = list(queue)
         now_playing = temp[0][0]
         by = temp[0][1].mention(style='md')
         msg = "**Nᴏᴡ Pʟᴀʏɪɴɢ** in {}".format(cb.message.chat.title)
@@ -259,7 +247,7 @@ async def p_cb(b, cb):
 @Client.on_callback_query(filters.regex(pattern=r'^(play|pause|skip|leave|puse|resume|menu|cls)$'))
 @cb_admin_check
 async def m_cb(b, cb):
-    global que    
+    global que
     qeue = que.get(cb.message.chat.id)
     type_ = cb.matches[0].group(1)
     chat_id = cb.message.chat.id
@@ -275,10 +263,10 @@ async def m_cb(b, cb):
             await cb.answer('Chat is not connected!', show_alert=True)
         else:
             callsmusic.pytgcalls.pause_stream(chat_id)
-            
+
             await cb.answer('Music Paused!')
             await cb.message.edit(updated_stats(m_chat, qeue), reply_markup=r_ply('play'))
-                
+
 
     elif type_ == 'play':       
         if (
@@ -291,15 +279,13 @@ async def m_cb(b, cb):
             callsmusic.pytgcalls.resume_stream(chat_id)
             await cb.answer('Music Resumed!')
             await cb.message.edit(updated_stats(m_chat, qeue), reply_markup=r_ply('pause'))
-                     
+
 
     elif type_ == 'playlist':
         queue = que.get(cb.message.chat.id)
         if not queue:   
             await cb.message.edit('Player is idle')
-        temp = []
-        for t in queue:
-            temp.append(t)
+        temp = list(queue)
         now_playing = temp[0][0]
         by = temp[0][1].mention(style='md')
         msg = "**Nᴏᴡ Pʟᴀʏɪɴɢ** in {}".format(cb.message.chat.title)
@@ -315,7 +301,7 @@ async def m_cb(b, cb):
                  msg += f'\n- {name}'
                  msg += f'\n- RᴇQ Bʏ {usr}\n'
         await cb.message.edit(msg)      
-                      
+
     elif type_ == 'resume':     
         if (
             chat_id not in callsmusic.pytgcalls.active_calls
@@ -325,7 +311,7 @@ async def m_cb(b, cb):
                 await cb.answer('Chat is not connected or already playng', show_alert=True)
         else:
             callsmusic.pytgcalls.resume_stream(chat_id)
-            await cb.answer('Music Resumed!')     
+            await cb.answer('Music Resumed!')
     elif type_ == 'puse':         
         if (
             chat_id not in callsmusic.pytgcalls.active_calls
@@ -335,7 +321,7 @@ async def m_cb(b, cb):
             await cb.answer('Chat is not connected or already paused', show_alert=True)
         else:
             callsmusic.pytgcalls.pause_stream(chat_id)
-            
+
             await cb.answer('Music Paused!')
     elif type_ == 'cls':          
         await cb.answer('Closed menu')
@@ -351,29 +337,27 @@ async def m_cb(b, cb):
                     InlineKeyboardButton('⏸', 'Pᴀᴜꜱᴇ'),
                     InlineKeyboardButton('▶️', 'Rᴇꜱᴜᴍᴇ'),
                     InlineKeyboardButton('⏭', 'Sᴋɪᴘ')
-                
+
                 ],
                 [
                     InlineKeyboardButton('Pʟᴀʏʟɪꜱᴛ 📖', 'playlist'),
-                
+
                 ],
                 [       
                     InlineKeyboardButton("🆑 Cʟᴏꜱᴇ",'cls')
                 ]        
             ]
         )
-        await cb.message.edit(stats, reply_markup=marr) 
-    elif type_ == 'skip':        
+        await cb.message.edit(stats, reply_markup=marr)
+    elif type_ == 'skip':    
         if qeue:
             skip = qeue.pop(0)
-        if chat_id not in callsmusic.pytgcalls.active_calls:
-            await cb.answer('Chat is not connected!', show_alert=True)
-        else:
+        if chat_id in callsmusic.pytgcalls.active_calls:
             callsmusic.queues.task_done(chat_id)
 
             if callsmusic.queues.is_empty(chat_id):
                 callsmusic.pytgcalls.leave_group_call(chat_id)
-                
+
                 await cb.message.edit('- No More Playlist..\n- Leaving VC!')
             else:
                 callsmusic.pytgcalls.change_stream(
@@ -384,17 +368,18 @@ async def m_cb(b, cb):
                 await cb.message.edit((m_chat, qeue), reply_markup=r_ply(the_data))
                 await cb.message.reply_text(f'- Skipped track\n- Now Playing **{qeue[0][0]}**')
 
-    else:      
-        if chat_id in callsmusic.pytgcalls.active_calls:
-            try:
-                callsmusic.queues.clear(chat_id)
-            except QueueEmpty:
-                pass
-
-            callsmusic.pytgcalls.leave_group_call(chat_id)
-            await cb.message.edit('Successfully Left the Chat!')
         else:
             await cb.answer('Chat is not connected!', show_alert=True)
+    elif chat_id in callsmusic.pytgcalls.active_calls:
+        try:
+            callsmusic.queues.clear(chat_id)
+        except QueueEmpty:
+            pass
+
+        callsmusic.pytgcalls.leave_group_call(chat_id)
+        await cb.message.edit('Successfully Left the Chat!')
+    else:
+        await cb.answer('Chat is not connected!', show_alert=True)
 
 @Client.on_message(command("play") & other_filters)
 async def play(_, message: Message):
@@ -561,40 +546,40 @@ async def deezer(client: Client, message_: Message):
         #chatdetails = await USER.get_chat(chid)
         lmoa = await client.get_chat_member(chid,wew)
     except:
-           for administrator in administrators:
-                      if administrator == message_.from_user.id:  
-                          try:
-                              invitelink = await client.export_chat_invite_link(chid)
-                          except:
-                              await lel.edit(
-                                  "<b>Aᴅᴅ Mᴇ Aꜱ Aᴅᴍɪɴ Oꜰ Yᴏᴜʀ Gʀᴏᴜᴘ Fɪʀꜱᴛ</b>",
-                              )
-                              return
+        for administrator in administrators:
+            if administrator == message_.from_user.id:  
+                try:
+                    invitelink = await client.export_chat_invite_link(chid)
+                except:
+                    await lel.edit(
+                        "<b>Aᴅᴅ Mᴇ Aꜱ Aᴅᴍɪɴ Oꜰ Yᴏᴜʀ Gʀᴏᴜᴘ Fɪʀꜱᴛ</b>",
+                    )
+                    return
 
-                          try:
-                              await USER.join_chat(invitelink)
-                              await USER.send_message(message_.chat.id,"I Jᴏɪɴᴇᴅ Tʜɪꜱ Gʀᴏᴜᴘ Fᴏʀ Pʟᴀʏɪɴɢ Mᴜꜱɪᴄ Iɴ VC")
-                              await lel.edit(
-                                  "<b>@Awesome_Cutiepii Uꜱᴇʀʙᴏᴛ Jᴏɪɴᴇᴅ Yᴏᴜʀ Cʜᴀᴛ</b>",
-                              )
+                try:
+                    await USER.join_chat(invitelink)
+                    await USER.send_message(message_.chat.id,"I Jᴏɪɴᴇᴅ Tʜɪꜱ Gʀᴏᴜᴘ Fᴏʀ Pʟᴀʏɪɴɢ Mᴜꜱɪᴄ Iɴ VC")
+                    await lel.edit(
+                        "<b>@Awesome_Cutiepii Uꜱᴇʀʙᴏᴛ Jᴏɪɴᴇᴅ Yᴏᴜʀ Cʜᴀᴛ</b>",
+                    )
 
-                          except UserAlreadyParticipant:
-                              pass
-                          except Exception as e:
-                              #print(e)
-                              await lel.edit(
-                                  f"<b>🔴 Fʟᴏᴏᴅ Wᴀɪᴛ Eʀʀᴏʀ 🔴 \nUser {user.first_name} Cᴏᴜʟᴅɴ'ᴛ Jᴏɪɴ Yᴏᴜʀ Gʀᴏᴜᴘ Dᴜᴇ Tᴏ Hᴇᴀᴠʏ RᴇQᴜᴇꜱᴛꜱ Fᴏʀ Uꜱᴇʀʙᴏᴛ! mᴀᴋᴇ Sᴜʀᴇ Uꜱᴇʀ Iꜱ Nᴏᴛ Bᴀɴɴᴇᴅ Iɴ Gʀᴏᴜᴘ."
-                                  "\n\n@Awesome_Cutiepii Uꜱᴇʀʙᴏᴛ Nᴏᴛ Iɴ Tʜɪꜱ Cʜᴀᴛ, Aꜱᴋ Aᴅᴍɪɴ Tᴏ Sᴇɴᴅ /play Cᴏᴍᴍᴀɴᴅ Fᴏʀ Fɪʀꜱᴛ Tɪᴍᴇ Oʀ Aᴅᴅ Aꜱꜱɪꜱᴛᴀɴᴛ Mᴀɴᴜᴀʟʟʏ.</b>",
-                              )
-                              pass
+                except UserAlreadyParticipant:
+                    pass
+                except Exception as e:
+                    #print(e)
+                    await lel.edit(
+                        f"<b>🔴 Fʟᴏᴏᴅ Wᴀɪᴛ Eʀʀᴏʀ 🔴 \nUser {user.first_name} Cᴏᴜʟᴅɴ'ᴛ Jᴏɪɴ Yᴏᴜʀ Gʀᴏᴜᴘ Dᴜᴇ Tᴏ Hᴇᴀᴠʏ RᴇQᴜᴇꜱᴛꜱ Fᴏʀ Uꜱᴇʀʙᴏᴛ! mᴀᴋᴇ Sᴜʀᴇ Uꜱᴇʀ Iꜱ Nᴏᴛ Bᴀɴɴᴇᴅ Iɴ Gʀᴏᴜᴘ."
+                        "\n\n@Awesome_Cutiepii Uꜱᴇʀʙᴏᴛ Nᴏᴛ Iɴ Tʜɪꜱ Cʜᴀᴛ, Aꜱᴋ Aᴅᴍɪɴ Tᴏ Sᴇɴᴅ /play Cᴏᴍᴍᴀɴᴅ Fᴏʀ Fɪʀꜱᴛ Tɪᴍᴇ Oʀ Aᴅᴅ Aꜱꜱɪꜱᴛᴀɴᴛ Mᴀɴᴜᴀʟʟʏ.</b>",
+                    )
     try:
         chatdetails = await USER.get_chat(chid)
         #lmoa = await client.get_chat_member(chid,wew)
     except:
         await lel.edit(
-            f"<i>Lᴏᴏᴋꜱ Lɪᴋᴇ @Awesome_Cutiepii Uꜱᴇʀʙᴏᴛ Nᴏᴛ Iɴ Tʜɪꜱ Cʜᴀᴛ, Aꜱᴋ Aᴅᴍɪɴ Tᴏ Sᴇɴᴅ /play Cᴏᴍᴍᴀɴᴅ Fᴏʀ Fɪʀꜱᴛ Tɪᴍᴇ Oʀ Aᴅᴅ Aꜱꜱɪꜱᴛᴀɴᴛ Mᴀɴᴜᴀʟʟʏ.</i>"
+            "<i>Lᴏᴏᴋꜱ Lɪᴋᴇ @Awesome_Cutiepii Uꜱᴇʀʙᴏᴛ Nᴏᴛ Iɴ Tʜɪꜱ Cʜᴀᴛ, Aꜱᴋ Aᴅᴍɪɴ Tᴏ Sᴇɴᴅ /play Cᴏᴍᴍᴀɴᴅ Fᴏʀ Fɪʀꜱᴛ Tɪᴍᴇ Oʀ Aᴅᴅ Aꜱꜱɪꜱᴛᴀɴᴛ Mᴀɴᴜᴀʟʟʏ.</i>"
         )
-        return                            
+
+        return
     requested_by = message_.from_user.first_name   
 
     text = message_.text.split(" ", 1)
@@ -667,7 +652,7 @@ async def deezer(client: Client, message_: Message):
         reply_markup=keyboard,
         photo="final.png",
         caption=f"Playing [{title}]({url}) Via Deezer"
-    ) 
+    )
     os.remove("final.png")
 
 
@@ -691,32 +676,31 @@ async def jiosaavn(client: Client, message_: Message):
         #chatdetails = await USER.get_chat(chid)
         lmoa = await client.get_chat_member(chid,wew)
     except:
-           for administrator in administrators:
-                      if administrator == message_.from_user.id:  
-                          try:
-                              invitelink = await client.export_chat_invite_link(chid)
-                          except:
-                              await lel.edit(
-                                  "<b>Aᴅᴅ Mᴇ Aꜱ Aᴅᴍɪɴ Oꜰ Yᴏᴜʀ Gʀᴏᴜᴘ Fɪʀꜱᴛ</b>",
-                              )
-                              return
+        for administrator in administrators:
+            if administrator == message_.from_user.id:  
+                try:
+                    invitelink = await client.export_chat_invite_link(chid)
+                except:
+                    await lel.edit(
+                        "<b>Aᴅᴅ Mᴇ Aꜱ Aᴅᴍɪɴ Oꜰ Yᴏᴜʀ Gʀᴏᴜᴘ Fɪʀꜱᴛ</b>",
+                    )
+                    return
 
-                          try:
-                              await USER.join_chat(invitelink)
-                              await USER.send_message(message_.chat.id,"I Jᴏɪɴᴇᴅ Tʜɪꜱ Gʀᴏᴜᴘ Fᴏʀ Pʟᴀʏɪɴɢ Mᴜꜱɪᴄ Iɴ VC")
-                              await lel.edit(
-                                  "<b>@Awesome_Cutiepii Hᴇʟᴘᴇʀ Uꜱᴇʀʙᴏᴛ Jᴏɪɴᴇᴅ Yᴏᴜʀ Cʜᴀᴛ</b>",
-                              )
+                try:
+                    await USER.join_chat(invitelink)
+                    await USER.send_message(message_.chat.id,"I Jᴏɪɴᴇᴅ Tʜɪꜱ Gʀᴏᴜᴘ Fᴏʀ Pʟᴀʏɪɴɢ Mᴜꜱɪᴄ Iɴ VC")
+                    await lel.edit(
+                        "<b>@Awesome_Cutiepii Hᴇʟᴘᴇʀ Uꜱᴇʀʙᴏᴛ Jᴏɪɴᴇᴅ Yᴏᴜʀ Cʜᴀᴛ</b>",
+                    )
 
-                          except UserAlreadyParticipant:
-                              pass
-                          except Exception as e:
-                              #print(e)
-                              await lel.edit(
-                                  f"<b>🔴 Fʟᴏᴏᴅ Wᴀɪᴛ Eʀʀᴏʀ 🔴 \nUser {user.first_name} Cᴏᴜʟᴅɴ'ᴛ Jᴏɪɴ Yᴏᴜʀ Gʀᴏᴜᴘ Dᴜᴇ Tᴏ Hᴇᴀᴠʏ RᴇQᴜᴇꜱᴛꜱ Fᴏʀ Uꜱᴇʀʙᴏᴛ! mᴀᴋᴇ Sᴜʀᴇ Uꜱᴇʀ Iꜱ Nᴏᴛ Bᴀɴɴᴇᴅ Iɴ Gʀᴏᴜᴘ."
-                                  "\n\nOʀ Mᴀɴᴜᴀʟʟʏ Aᴅᴅ @Awesome_Cutiepii Tᴏ Yᴏᴜʀ Gʀᴏᴜᴘ Aɴᴅ Tʀʏ Aɢᴀɪɴ</b>",
-                              )
-                              pass
+                except UserAlreadyParticipant:
+                    pass
+                except Exception as e:
+                    #print(e)
+                    await lel.edit(
+                        f"<b>🔴 Fʟᴏᴏᴅ Wᴀɪᴛ Eʀʀᴏʀ 🔴 \nUser {user.first_name} Cᴏᴜʟᴅɴ'ᴛ Jᴏɪɴ Yᴏᴜʀ Gʀᴏᴜᴘ Dᴜᴇ Tᴏ Hᴇᴀᴠʏ RᴇQᴜᴇꜱᴛꜱ Fᴏʀ Uꜱᴇʀʙᴏᴛ! mᴀᴋᴇ Sᴜʀᴇ Uꜱᴇʀ Iꜱ Nᴏᴛ Bᴀɴɴᴇᴅ Iɴ Gʀᴏᴜᴘ."
+                        "\n\nOʀ Mᴀɴᴜᴀʟʟʏ Aᴅᴅ @Awesome_Cutiepii Tᴏ Yᴏᴜʀ Gʀᴏᴜᴘ Aɴᴅ Tʀʏ Aɢᴀɪɴ</b>",
+                    )
     try:
         chatdetails = await USER.get_chat(chid)
         #lmoa = await client.get_chat_member(chid,wew)
@@ -724,7 +708,7 @@ async def jiosaavn(client: Client, message_: Message):
         await lel.edit(
             "<i> @Awesome_Cutiepii Uꜱᴇʀʙᴏᴛ Nᴏᴛ Iɴ Tʜɪꜱ Cʜᴀᴛ, Aꜱᴋ Aᴅᴍɪɴ Tᴏ Sᴇɴᴅ /play Cᴏᴍᴍᴀɴᴅ Fᴏʀ Fɪʀꜱᴛ Tɪᴍᴇ Oʀ Aᴅᴅ Aꜱꜱɪꜱᴛᴀɴᴛ Mᴀɴᴜᴀʟʟʏ.</i>"
         )
-        return     
+        return
     requested_by = message_.from_user.first_name
     chat_id=message_.chat.id
     text = message_.text.split(" ", 1)
@@ -746,7 +730,7 @@ async def jiosaavn(client: Client, message_: Message):
         await res.edit(
             "Fᴏᴜɴᴅ Lɪᴛᴇʀᴀʟʟʏ Nᴏᴛʜɪɴɢ, Yᴏᴜ Sʜᴏᴜʟᴅ Wᴏʀᴋ Oɴ Yᴏᴜʀ Eɴɢʟɪꜱʜ."
         )
-        print(str(e))
+        print(e)
         is_playing = False
         return
     keyboard = InlineKeyboardMarkup(
@@ -783,9 +767,9 @@ async def jiosaavn(client: Client, message_: Message):
             reply_markup=keyboard,
             photo="final.png",
             caption=f"#️⃣ Qᴜᴇᴜᴇᴅ ᴀᴛ ᴘᴏꜱɪᴛɪᴏɴ {position}",
-        
+
         )           
-           
+
     else:
         await res.edit_text("▶️ Pʟᴀʏɪɴɢ...")
         chat_id = message_.chat.id
@@ -805,7 +789,7 @@ async def jiosaavn(client: Client, message_: Message):
         reply_markup=keyboard,
         photo="final.png",
         caption=f"Pʟᴀʏɪɴɢ {sname} Vɪᴀ JɪᴏSᴀᴀᴠɴ",
-        
+
     )
     os.remove("final.png")
 
